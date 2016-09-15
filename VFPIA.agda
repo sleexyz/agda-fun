@@ -91,8 +91,8 @@ notnot-elim2 false = notnotFalse
 ||≡false₁ {true} ()
 
 ||-cong₁ : ∀ {b1 b1' b2} → b1 ≡ b1' -> (b1 || b2) ≡ (b1' || b2)
--- ||-cong₁ refl = refl
-||-cong₁ p rewrite p = refl
+||-cong₁ refl = refl
+-- ||-cong₁ p rewrite p = refl
 
 
 ite-same : ∀{a}{A : Set a} →
@@ -136,7 +136,7 @@ pred (suc n) = n
 
 +0 : ∀ x -> x + 0 ≡ x
 +0 0 =  refl
-+0 (suc x) rewrite +0 x =  refl
++0 (suc x) rewrite +0 x = refl
 
 -- (suc x) + 0 ≡ suc x
 -- suc (x + 0) ≡ suc x
@@ -151,9 +151,9 @@ pred (suc n) = n
 +suc 0 y = refl
 +suc (suc x) y rewrite +suc x y = refl
 
-comm+ : (x y : ℕ) -> x + y ≡ y + x
-comm+ 0 y rewrite +0 y = refl
-comm+ (suc x) y rewrite comm+ x y | +suc y x = refl
++comm : (x y : ℕ) -> x + y ≡ y + x
++comm 0 y rewrite +0 y = refl
++comm (suc x) y  rewrite +comm x y | +suc y x = refl
 
 
 _*_ : ℕ → ℕ → ℕ
@@ -161,51 +161,30 @@ zero * n = zero
 suc m * n = n + (m * n)
 
 
-*distrib : (x y z : ℕ) → (x + y) * z ≡ x * z + y * z
-*distrib 0 y z = refl
-*distrib (suc x) y z rewrite *distrib x y z | +assoc z (x * z) (y * z) = refl
+0* : (x : ℕ) -> (0 * x) ≡ 0
+0* _ = refl
+
+*0 : (x : ℕ) -> (x * 0) ≡ 0
+*0 0 = refl
+*0 (suc n) rewrite *0 n = refl
+
+*rdistrib : (x y z : ℕ) → (x + y) * z ≡ x * z + y * z
+*rdistrib 0 y z = refl
+*rdistrib (suc x) y z rewrite *rdistrib x y z | +assoc z (x * z) (y * z) = refl
+
 
 *id0 : (x : ℕ) → x * 0 ≡ 0
 *id0 0 = refl
 *id0 (suc n) = *id0 n
 
+*suc : (x y : ℕ) -> x * suc y ≡ x + x * y
+*suc 0 y = refl
+*suc (suc n) y rewrite *suc n y | +comm n (y + (n * y)) | +assoc y (n * y) n | +comm n (n * y)  = refl
+
 *comm : (x y : ℕ) → x * y ≡ y * x
-*comm x 0 rewrite *id0 x = refl
-*comm x (suc y) rewrite *comm y x | *distrib x 1 y | + comm=  {!!}
+*comm 0 y rewrite *id0 y = refl
+*comm (suc x) y rewrite *comm x y | *suc y x = refl
 
 
-
-
--- | implicit arguments via inference
-id : {T : Set} → T → T
-id = λ x → x
-
-fac : ℕ → ℕ
-fac zero = 1
-fac (suc n) = suc n * fac n
-
-foo : ℕ
-foo = fac 7
-
-data _even : ℕ -> Set where
-  ZERO : zero even
-  STEP : {x : ℕ} -> x even -> suc (suc x) even
-
-proof1 : 8 even
-proof1 = STEP (STEP (STEP (STEP ZERO)))
-
-
-proof_b : (X : ℕ) -> (X + 0) ≡ X
-proof_b zero = refl
-proof_b (suc n) = cong suc (proof_b n)
-
-
-proof+commutative : {X Y : ℕ} → (X + Y) ≡ (Y + X)
-proof+commutative = {!!}
-
-proof2 : {Y : ℕ} → Y even -> (0 + Y) even
-proof2 a = a
-
--- proof3 : {X Y : Nat} → X even -> Y even -> (X + Y) even
-
-
+*ldistrib : (x y z : ℕ) -> z * (x + y) ≡ z * x + z * y
+*ldistrib x y z rewrite *comm z (x + y) | *rdistrib x y z | *comm x z | *comm y z  = refl
