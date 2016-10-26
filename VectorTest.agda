@@ -68,3 +68,12 @@ reverseVecAux {a} {succ n} {m} (x :: xs) ys = subst (Vec _) (plus-succ n m) (rev
 
 reverseVec : {A : Set} {n : Nat} -> Vec A n -> Vec A n
 reverseVec {_} {n} v = subst (Vec _) (plus-zero n) (reverseVecAux v [])
+
+reverseVec-example-0 : reverseVec {Nat} [] == []
+reverseVec-example-0 = refl
+
+reverseVec-example-1 : reverseVec (1 :: []) == (1 :: [])
+reverseVec-example-1 = refl
+
+reverseVec-example-2 : reverseVec (1 :: 2 :: 3 :: []) == (3 :: 2 :: 1 :: [])
+reverseVec-example-2 = refl
