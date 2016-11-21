@@ -1,3 +1,3 @@
 # fun with agda
 
-verified functional programming in agda yo
+agda is very fun
