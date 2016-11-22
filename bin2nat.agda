@@ -91,74 +91,65 @@ nat-roundtrip-id2 (suc x) =
   ∎
 
 
-repeat : ∀{l}{A : Set l} → Nat → (A → A) → A → A
-repeat zero _ x = x
-repeat (suc n) f x = f (repeat n f x)
+-- repeat : ∀{l}{A : Set l} → Nat → (A → A) → A → A
+-- repeat zero _ x = x
+-- repeat (suc n) f x = f (repeat n f x)
 
-_+b_ : Bin → Bin → Bin
-x +b y = repeat (bin2nat x) bincr y
+-- _+b_ : Bin → Bin → Bin
+-- x +b y = repeat (bin2nat x) bincr y
 
--- | The proof hinges on this...
--- Which is simply not true...
-btwice+b : (x : Bin) → (x +b x ≡ btwice x)
-btwice+b x = {!!}
+-- -- | The proof hinges on this...
+-- -- Which is simply not true...
+-- btwice+b : (x : Bin) → (x +b x ≡ btwice x)
+-- btwice+b x = {!!}
 
-bincr+b : (x y : Bin) →  bincr x +b y ≡ bincr (x +b y)
-bincr+b bzero y = refl
-bincr+b (btwice x) y = refl
-bincr+b (bstwice x) y
-  rewrite
-    bincr+b x y
-  | +0 (bin2nat x)
-  | +0 (bin2nat (bincr x))
-  | bincr+b (btwice x) y
-  | bincr-distrib-nat x
-  | sym (+suc (bin2nat x) (bin2nat x))
-  | suc-distrib-bin (bin2nat x)
-  = refl
+-- bincr+b : (x y : Bin) →  bincr x +b y ≡ bincr (x +b y)
+-- bincr+b bzero y = refl
+-- bincr+b (btwice x) y = refl
+-- bincr+b (bstwice x) y
+--   rewrite
+--     bincr+b x y
+--   | +0 (bin2nat x)
+--   | +0 (bin2nat (bincr x))
+--   | bincr+b (btwice x) y
+--   | bincr-distrib-nat x
+--   | sym (+suc (bin2nat x) (bin2nat x))
+--   | suc-distrib-bin (bin2nat x)
+--   = refl
 
-nat2bin-addition-linear : (x y : Nat) → nat2bin (x + y) ≡ nat2bin x +b nat2bin y
-nat2bin-addition-linear zero y = refl
-nat2bin-addition-linear (suc x) y rewrite
-    nat2bin-addition-linear x y
-  | bincr+b (nat2bin x) (nat2bin y)
-  = refl
+-- nat2bin-addition-linear : (x y : Nat) → nat2bin (x + y) ≡ nat2bin x +b nat2bin y
+-- nat2bin-addition-linear zero y = refl
+-- nat2bin-addition-linear (suc x) y rewrite
+--     nat2bin-addition-linear x y
+--   | bincr+b (nat2bin x) (nat2bin y)
+--   = refl
 
-bin-roundtrip-id : (x : Bin) → (nat2bin (bin2nat x)) ≡ x
-bin-roundtrip-id bzero = refl
-bin-roundtrip-id (btwice x) rewrite
-    refl
-  | nat2bin-addition-linear (bin2nat x) (bin2nat x)
-  | bin-roundtrip-id x
-  | btwice+b x
-  = refl
-bin-roundtrip-id (bstwice x) rewrite
-    refl
-  | nat2bin-addition-linear (bin2nat x) (bin2nat x)
-  | bin-roundtrip-id x
-  | btwice+b x
-  = refl
+-- bin-roundtrip-id : (x : Bin) → (nat2bin (bin2nat x)) ≡ x
+-- bin-roundtrip-id bzero = refl
+-- bin-roundtrip-id (btwice x) rewrite
+--     refl
+--   | nat2bin-addition-linear (bin2nat x) (bin2nat x)
+--   | bin-roundtrip-id x
+--   | btwice+b x
+--   = refl
+-- bin-roundtrip-id (bstwice x) rewrite
+--     refl
+--   | nat2bin-addition-linear (bin2nat x) (bin2nat x)
+--   | bin-roundtrip-id x
+--   | btwice+b x
+--   = refl
 
--- TODO: fix
 bnorm : Bin → Bin
-bnorm bzero = bzero
-bnorm (btwice bzero) = bzero
-bnorm (btwice x) = {!!}
-bnorm (bstwice (bstwice x)) = {!!}
-bnorm (bstwice x) =  {!!}
+bnorm = nat2bin ∘ bin2nat
 
-bnorm-idemp : (x : Bin) → (bnorm (bnorm x)) ≡ bnorm x
-bnorm-idemp bzero = refl
-bnorm-idemp (btwice x) = {!!}
-bnorm-idemp (bstwice x) = {!!}
+bnorm-idemp : (x : Bin) → (bnorm ∘ bnorm) x ≡ bnorm x
+bnorm-idemp x rewrite nat-roundtrip-id (bin2nat x) = refl
 
--- bnorm-comm-bin2nat : (x : Bin) → bin2nat (bnorm x) ≡ bin2nat x
--- bnorm-comm-bin2nat bzero = refl
--- bnorm-comm-bin2nat (btwice x)
---   = {!!}
--- bnorm-comm-bin2nat (bstwice x) = {!!}
+-- | tfw you realize your functions are β-equivalent :p
+bin-roundtrip-id : (x : Bin) → (nat2bin ∘ bin2nat ∘ bnorm) x ≡ bnorm x
+bin-roundtrip-id = bnorm-idemp
 
--- bin-roundtrip-id-normalized : (x : Bin) → (nat2bin (bin2nat (bnorm x))) ≡ bnorm x
--- bin-roundtrip-id-normalized bzero = refl
--- bin-roundtrip-id-normalized (btwice x) = {!!}
--- bin-roundtrip-id-normalized (bstwice x) = {!!}
+bnorm-idemp₂ : (x : Bin) → (bnorm ∘ bnorm) x ≡ bnorm x
+bnorm-idemp₂ x = (nat2bin ∘ bin2nat ∘ nat2bin ∘ bin2nat) x
+  ≡⟨ cong nat2bin (nat-roundtrip-id (bin2nat x)) ⟩
+  refl
