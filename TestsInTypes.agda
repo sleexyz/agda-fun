@@ -35,20 +35,25 @@ data Hlist {n} : (xs : List (Set n)) → Set n where
 --   [] : Test []
 --   _∷_ : {x : Set n} {xs : List (Set (suc n))} → x ≡ x → Test xs → Test ((x ≡ x) ∷ xs)
 
-data Test : (list : List Set) (xs : Hlist list) → Set1 where
-  [] : Test [] []
-  _∷_ : {A : Set} {x : A} {list : List Set} {xs : Hlist list} → x ≡ x → Test list xs → Test (A ∷ list) (x ∷ xs)
+-- data Test : (list : List Set) (xs : Hlist list) → Set1 where
+--   [] : Test [] []
+--   _∷_ : {A : Set} {x : A} {list : List Set} {xs : Hlist list} → x ≡ x → Test list xs → Test (A ∷ list) (x ∷ xs)
 
--- check : Test
--- check {a ∷ rest} = _∷_ {A} {x} (refl) (check {rest})
--- check {[]} = []
+-- check : {list : List Set} {xs : Hlist list} → Test list xs
+-- check {a ∷ list} {x ∷ rest} = refl ∷ check {list} {rest}
+-- check {[]} {[]} = []
+
+data Test {n} : {list : List (Set n)} (xs : Hlist list) → Set (suc n) where
+  [] : Test []
+  _∷_ : {A : Set n} {x : A} {list : List (Set n)} {xs : Hlist list} → x ≡ x → Test {n} {list} xs → Test {n} {A ∷ list} (x ∷ xs)
+
+check : ∀{n} {list : List (Set n)} {xs : Hlist list} → Test {n} {list} xs
+check {_} {a ∷ list} {x ∷ rest} = refl ∷ check {_} {list} {rest}
+check {_} {[]} {[]} = []
 
 
--- spec : Test $ (((1 ∷ 2 ∷ 3 ∷ []) ++ []) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
---             , (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
---             , (((1 ∷ []) ++ (2 ∷ 3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
---             , []
-
--- spec : Test $ (1 shouldBe 1)
---             ∷ []
--- spec = check
+spec : Test $ (((1 ∷ 2 ∷ 3 ∷ []) ++ []) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+            ∷ (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+            ∷ (((1 ∷ []) ++ (2 ∷ 3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+            ∷ []
+spec = check
