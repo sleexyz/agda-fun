@@ -2,6 +2,7 @@ module bin2nat where
 
 open import Relation.Binary.PropositionalEquality
 open import Function
+open import Data.Product
 
 data Nat : Set where
   zero : Nat
@@ -60,19 +61,19 @@ bincr-distrib-nat (bstwice x)
   rewrite bincr-distrib-nat x | +0 (bin2nat x) | sym (+suc (bin2nat x) (bin2nat x)) = refl
 
 
-nat-roundtrip-id : (x : Nat) → (bin2nat ∘ nat2bin) x ≡ x
-nat-roundtrip-id zero = refl
-nat-roundtrip-id (suc x)
-  rewrite suc-distrib-bin x | bincr-distrib-nat (nat2bin x) | nat-roundtrip-id x = refl
+conversion-id-nat : (x : Nat) → (bin2nat ∘ nat2bin) x ≡ x
+conversion-id-nat zero = refl
+conversion-id-nat (suc x)
+  rewrite suc-distrib-bin x | bincr-distrib-nat (nat2bin x) | conversion-id-nat x = refl
 
 
 -- * Now lets try it with ≡-Reasoning
 
 open ≡-Reasoning
 
-nat-roundtrip-id2 : (x : Nat) → (bin2nat ∘ nat2bin) x ≡ x
-nat-roundtrip-id2 zero = refl
-nat-roundtrip-id2 (suc x) =
+conversion-id-nat₁ : (x : Nat) → (bin2nat ∘ nat2bin) x ≡ x
+conversion-id-nat₁ zero = refl
+conversion-id-nat₁ (suc x) =
 
     (bin2nat ∘ nat2bin ∘ suc) x
 
@@ -84,7 +85,7 @@ nat-roundtrip-id2 (suc x) =
 
     (suc ∘ bin2nat ∘ nat2bin) x
 
-  ≡⟨ cong suc (nat-roundtrip-id2 x) ⟩
+  ≡⟨ cong suc (conversion-id-nat₁ x) ⟩
 
     suc x
 
@@ -135,7 +136,7 @@ nat-roundtrip-id2 (suc x) =
 -- bin-roundtrip-id (bstwice x) rewrite
 --     refl
 --   | nat2bin-addition-linear (bin2nat x) (bin2nat x)
---   | bin-roundtrip-id x
+--   | bin-roundtrip-id xencoding tests in type agda
 --   | btwice+b x
 --   = refl
 
@@ -143,13 +144,13 @@ bnorm : Bin → Bin
 bnorm = nat2bin ∘ bin2nat
 
 bnorm-idemp : (x : Bin) → (bnorm ∘ bnorm) x ≡ bnorm x
-bnorm-idemp x rewrite nat-roundtrip-id (bin2nat x) = refl
+bnorm-idemp x rewrite conversion-id-nat (bin2nat x) = refl
 
 -- | tfw you realize your functions are β-equivalent :p
-bin-roundtrip-id : (x : Bin) → (nat2bin ∘ bin2nat ∘ bnorm) x ≡ bnorm x
-bin-roundtrip-id = bnorm-idemp
+conversion-id-normalized-bin : (x : Bin) → (nat2bin ∘ bin2nat ∘ bnorm) x ≡ bnorm x
+conversion-id-normalized-bin = bnorm-idemp
 
 bnorm-idemp₂ : (x : Bin) → (bnorm ∘ bnorm) x ≡ bnorm x
 bnorm-idemp₂ x = (nat2bin ∘ bin2nat ∘ nat2bin ∘ bin2nat) x
-  ≡⟨ cong nat2bin (nat-roundtrip-id (bin2nat x)) ⟩
+  ≡⟨ cong nat2bin (conversion-id-nat (bin2nat x)) ⟩
   refl
