@@ -1,59 +1,104 @@
 module TestsInTypes where
 
-open import Relation.Binary.PropositionalEquality
-open import Function
-open import Data.Product using (_×_; _,_)
-open import Data.List
-open import Data.Unit
-open import Level
+module TestInTypes-0 where
+  open import Relation.Binary.PropositionalEquality
+  open import Data.Product using (_×_; _,_)
+  open import Data.List
 
-infix 4 _shouldBe_
-_shouldBe_ = _≡_
+  infix 4 _shouldBe_
+  _shouldBe_ = _≡_
+
+  -- * Attempt 0 : manual
+
+  test1 :
+      (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+    × (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+    × (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+  test1 =
+      refl
+    , refl
+    , refl
+
+module TestsInTypes-1 where
+  open import Relation.Binary.PropositionalEquality
+  open import Data.Product using (_×_; _,_)
+  open import Data.List
+  open import Data.Unit using (⊤)
+  open import Data.Empty
+  open import Level
+
+  infix 4 _shouldBe_
+  _shouldBe_ = _≡_
+
+  -- * Attempt 1 : propositional equality with ad-hoc polymorphism
+
+  record Testable {a} (A : Set a) : Set (suc a) where
+    field check : A
+
+  open Testable {{...}} public
+
+  instance testable-≡ : ∀{a} {A : Set a} {x : A} → Testable (x ≡ x)
+  testable-≡ = record {check = refl}
+
+  instance testable-× : ∀{a b} {A : Set a} {B : Set b} {{checkA : Testable A}} {{checkB : Testable B}} → Testable (A × B)
+  testable-× = record {check = check , check}
+
+  -- * Example:
+  test2-a : 1 shouldBe 1
+  test2-a = check
+
+  test2-b : (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+          × (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+          × (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+  test2-b = check
+
+-- * Attempt 2 : decidable equality: maybe better error messages?
+
+module TestsInTypes-2 where
+  open import Data.Nat
+  open import Relation.Nullary
+  open import Relation.Binary.PropositionalEquality
+
+  decidable-prop : Dec (zero ≡ zero)
+  decidable-prop = zero ≟ zero
+
+  -- might have to look into this
 
 
+-- * Attempt 3 : heterogenous equality: maybe better error messages?
 
-test₁ :
-    (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-  × (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-  × (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-test₁ =
-    refl
-  , refl
-  , refl
+module TestsInTypes-3 where
+  open import Data.Unit
+  open import Data.Empty
+  open import Data.Nat
+  open import Data.Product
+  open import Data.List
+  open import Relation.Binary.HeterogeneousEquality
+  import Level
 
+  infix 4 _shouldBe_
+  _shouldBe_ = _≅_
 
-data Hlist {n} : (xs : List (Set n)) → Set n where
-  [] : Hlist []
-  _∷_ : {x : Set n} {xs : List (Set n)} → x → Hlist xs → Hlist (x ∷ xs)
+  test1 : ⊤ ≅ ⊤
+  test1 = refl
 
--- check : {xs : List Set} → Test (map (λ x → x ≡ x) xs)
--- check {a ∷ rest} = refl ∷ check {rest}
--- check {[]} = []
+  record Testable {a} (A : Set a) : Set (Level.suc a) where
+    field check : A
 
+  open Testable {{...}} public
 
--- data Test {n} : (xs : List (Set (suc n))) → Set (suc n) where
---   [] : Test []
---   _∷_ : {x : Set n} {xs : List (Set (suc n))} → x ≡ x → Test xs → Test ((x ≡ x) ∷ xs)
+  instance testable-≡ : ∀{a} {A : Set a} {x : A} → Testable (x ≅ x)
+  testable-≡ = record {check = refl}
 
--- data Test : (list : List Set) (xs : Hlist list) → Set1 where
---   [] : Test [] []
---   _∷_ : {A : Set} {x : A} {list : List Set} {xs : Hlist list} → x ≡ x → Test list xs → Test (A ∷ list) (x ∷ xs)
+  instance testable-× : ∀{a b} {A : Set a} {B : Set b} {{checkA : Testable A}} {{checkB : Testable B}} → Testable (A × B)
+  testable-× = record {check = check , check}
 
--- check : {list : List Set} {xs : Hlist list} → Test list xs
--- check {a ∷ list} {x ∷ rest} = refl ∷ check {list} {rest}
--- check {[]} {[]} = []
+  test2-a : 1 shouldBe 1
+  test2-a = check
 
-data Test {n} : {list : List (Set n)} (xs : Hlist list) → Set (suc n) where
-  [] : Test []
-  _∷_ : {A : Set n} {x : A} {list : List (Set n)} {xs : Hlist list} → x ≡ x → Test {n} {list} xs → Test {n} {A ∷ list} (x ∷ xs)
+  -- hmm, error messages are still bad...
 
-check : ∀{n} {list : List (Set n)} {xs : Hlist list} → Test {n} {list} xs
-check {_} {a ∷ list} {x ∷ rest} = refl ∷ check {_} {list} {rest}
-check {_} {[]} {[]} = []
-
-
-spec : Test $ (((1 ∷ 2 ∷ 3 ∷ []) ++ []) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-            ∷ (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-            ∷ (((1 ∷ []) ++ (2 ∷ 3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
-            ∷ []
-spec = check
+  test2-b : (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+          × (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+          × (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
+  test2-b = check
