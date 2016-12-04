@@ -21,7 +21,7 @@ module TestInTypes-0 where
 
 module TestsInTypes-1 where
   open import Relation.Binary.PropositionalEquality
-  open import Data.Product using (_×_; _,_)
+  -- open import Data.Product using (Σ; _×_; _,_)
   open import Data.List
   open import Data.Unit using (⊤)
   open import Data.Empty
@@ -29,6 +29,21 @@ module TestsInTypes-1 where
 
   infix 4 _shouldBe_
   _shouldBe_ = _≡_
+
+  infixr 2 _×_
+  infixr 4 _,_
+
+  -- data _×_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  --   _,_ : A → B → A × B
+
+  record _×_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+    constructor _,_
+    field
+      proj1 : A
+      proj2 : B
+
+  -- _and_ : ∀ {a b} (A : Set a) (B : Set b) → Set (a ⊔ b)
+  -- A and B = Σ A (λ _ → B)
 
   -- * Attempt 1 : propositional equality with ad-hoc polymorphism
 
@@ -47,10 +62,12 @@ module TestsInTypes-1 where
   test2-a : 1 shouldBe 1
   test2-a = check
 
+
   test2-b : (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
           × (((1 ∷ 2 ∷ []) ++ (3 ∷ [])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
           × (((1 ∷ 2 ∷ 3 ∷ []) ++ ([])) shouldBe (1 ∷ 2 ∷ 3 ∷ []))
   test2-b = check
+
 
 -- * Attempt 2 : decidable equality: maybe better error messages?
 
