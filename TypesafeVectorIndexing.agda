@@ -1,6 +1,6 @@
 -- | type safe vector indexing
 
-module TypeSafeVectorIndexing where
+module TypesafeVectorIndexing where
 
 module SemiManual where
 
