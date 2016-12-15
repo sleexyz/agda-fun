@@ -51,3 +51,24 @@ module Manual where
   get zero (x ∷ xs) refl = x
   get (suc i) [] ()
   get {_} {suc n} (suc i) (x ∷ xs) p = get i xs (suc-monotone-inverse p)
+
+module Manual2 where
+
+  data ℕ : Set where
+    zero : ℕ
+    suc  : ℕ → ℕ
+
+  data Vec (a : Set) : ℕ → Set where
+    [] : Vec a zero
+    _∷_ : {n : ℕ} → a → Vec a n → Vec a (suc n)
+
+  -- Thanks to Antonis for showing me this trick:
+  -- which is derived from Conor McBride's I am not a number - I am free variable paper
+
+  data Index : ℕ → Set where
+    top : {n : ℕ} → Index (suc n)
+    next : {n : ℕ} → Index n → Index (suc n)
+
+  get : {a : Set} {n : ℕ} → Index n → Vec a n → a
+  get top (x ∷ xs) = x
+  get (next i) (x ∷ xs) = get i xs
